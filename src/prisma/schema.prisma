@@ -1,0 +1,473 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Note: This is a simplified Prisma schema
+// The full schema matches the DDL.sql structure
+// Run migrations to sync with database
+
+model User {
+  userId      Int       @id @default(autoincrement()) @map("user_id")
+  email       String    @unique @db.VarChar(255)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role        UserRole
+  createdAt   DateTime  @default(now()) @map("created_at")
+  lastLogin   DateTime? @map("last_login")
+  isActive    Boolean   @default(true) @map("is_active")
+  
+  member      Member?
+  trainer     Trainer?
+  admin       Admin?
+  
+  @@map("users")
+}
+
+enum UserRole {
+  member
+  trainer
+  admin
+}
+
+model Member {
+  memberId            Int              @id @default(autoincrement()) @map("member_id")
+  userId              Int              @unique
+  firstName           String           @map("first_name") @db.VarChar(100)
+  lastName            String           @map("last_name") @db.VarChar(100)
+  dateOfBirth         DateTime         @map("date_of_birth") @db.Date
+  gender              GenderType
+  phoneNumber         String?          @map("phone_number") @db.VarChar(20)
+  emergencyContactName String?         @map("emergency_contact_name") @db.VarChar(100)
+  emergencyContactPhone String?        @map("emergency_contact_phone") @db.VarChar(20)
+  joinDate            DateTime         @default(now()) @map("join_date") @db.Date
+  membershipStatus    MembershipStatus @default(active) @map("membership_status")
+  membershipEndDate   DateTime?        @map("membership_end_date") @db.Date
+  
+  user                User             @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  fitnessGoals        FitnessGoal[]
+  healthMetrics       HealthMetric[]
+  ptSessions          PersonalTrainingSession[]
+  classRegistrations  ClassRegistration[]
+  bills               Bill[]
+  
+  @@map("members")
+}
+
+enum GenderType {
+  M
+  F
+  Other
+}
+
+enum MembershipStatus {
+  active
+  frozen
+  cancelled
+}
+
+model Trainer {
+  trainerId           Int       @id @default(autoincrement()) @map("trainer_id")
+  userId              Int       @unique
+  firstName           String    @map("first_name") @db.VarChar(100)
+  lastName            String    @map("last_name") @db.VarChar(100)
+  specialization      String[]  @db.Text
+  certificationNumber String?   @map("certification_number") @db.VarChar(50)
+  certificationExpiry  DateTime? @map("certification_expiry") @db.Date
+  hireDate            DateTime  @default(now()) @map("hire_date") @db.Date
+  hourlyRate          Decimal   @default(0) @map("hourly_rate") @db.Decimal(10, 2)
+  bio                 String?   @db.Text
+  profileImageUrl     String?   @map("profile_image_url") @db.VarChar(500)
+  rating              Decimal   @default(0) @db.Decimal(3, 2)
+  totalSessions       Int       @default(0) @map("total_sessions")
+  
+  user                User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  ptSessions          PersonalTrainingSession[]
+  classSchedules      ClassSchedule[]
+  availability        TrainerAvailability[]
+  
+  @@map("trainers")
+}
+
+model Admin {
+  adminId     Int            @id @default(autoincrement()) @map("admin_id")
+  userId      Int            @unique
+  firstName   String         @map("first_name") @db.VarChar(100)
+  lastName    String         @map("last_name") @db.VarChar(100)
+  department  AdminDepartment
+  hireDate    DateTime       @default(now()) @map("hire_date") @db.Date
+  
+  user        User           @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  maintenanceLogs MaintenanceLog[]
+  
+  @@map("admins")
+}
+
+enum AdminDepartment {
+  operations
+  maintenance
+  billing
+}
+
+model FitnessGoal {
+  goalId      Int       @id @default(autoincrement()) @map("goal_id")
+  memberId    Int       @map("member_id")
+  goalType    GoalType  @map("goal_type")
+  targetValue Decimal   @map("target_value") @db.Decimal(10, 2)
+  targetDate  DateTime  @map("target_date") @db.Date
+  currentValue Decimal? @map("current_value") @db.Decimal(10, 2)
+  status      GoalStatus @default(active)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  achievedAt DateTime? @map("achieved_at")
+  notes       String?   @db.Text
+  
+  member      Member    @relation(fields: [memberId], references: [memberId], onDelete: Cascade)
+  
+  @@map("fitness_goals")
+}
+
+enum GoalType {
+  weight_loss
+  muscle_gain
+  endurance
+  flexibility
+  general_fitness
+}
+
+enum GoalStatus {
+  active
+  achieved
+  paused
+  cancelled
+}
+
+model HealthMetric {
+  metricId              Int       @id @default(autoincrement()) @map("metric_id")
+  memberId              Int       @map("member_id")
+  recordedAt            DateTime  @default(now()) @map("recorded_at")
+  weight                Decimal?  @db.Decimal(5, 2)
+  height                Decimal?  @db.Decimal(5, 2)
+  bodyFatPercentage     Decimal?  @map("body_fat_percentage") @db.Decimal(5, 2)
+  muscleMass            Decimal?  @map("muscle_mass") @db.Decimal(5, 2)
+  restingHeartRate      Int?      @map("resting_heart_rate")
+  bloodPressureSystolic Int?      @map("blood_pressure_systolic")
+  bloodPressureDiastolic Int?     @map("blood_pressure_diastolic")
+  notes                 String?   @db.Text
+  bmi                   Decimal?  @db.Decimal(5, 2)
+  
+  member                Member    @relation(fields: [memberId], references: [memberId], onDelete: Cascade)
+  
+  @@index([memberId, recordedAt(sort: Desc)])
+  @@map("health_metrics")
+}
+
+model Room {
+  roomId        Int       @id @default(autoincrement()) @map("room_id")
+  roomName      String    @unique @map("room_name") @db.VarChar(100)
+  roomType      RoomType  @map("room_type")
+  capacity      Int
+  hasEquipment  Boolean   @default(false) @map("has_equipment")
+  isActive      Boolean   @default(true) @map("is_active")
+  description   String?   @db.Text
+  
+  equipment     Equipment[]
+  ptSessions    PersonalTrainingSession[]
+  classSchedules ClassSchedule[]
+  
+  @@map("rooms")
+}
+
+enum RoomType {
+  gym_floor
+  studio
+  pool
+  court
+}
+
+model Equipment {
+  equipmentId         Int              @id @default(autoincrement()) @map("equipment_id")
+  roomId              Int?             @map("room_id")
+  equipmentName       String           @map("equipment_name") @db.VarChar(100)
+  equipmentType       EquipmentType    @map("equipment_type")
+  brand               String?          @db.VarChar(100)
+  model               String?          @db.VarChar(100)
+  purchaseDate        DateTime?        @map("purchase_date") @db.Date
+  lastMaintenanceDate DateTime?        @map("last_maintenance_date") @db.Date
+  nextMaintenanceDue  DateTime?       @map("next_maintenance_due") @db.Date
+  status              EquipmentStatus  @default(operational)
+  serialNumber        String?          @map("serial_number") @db.VarChar(100)
+  
+  room                Room?            @relation(fields: [roomId], references: [roomId], onDelete: SetNull)
+  maintenanceLogs     MaintenanceLog[]
+  
+  @@map("equipment")
+}
+
+enum EquipmentType {
+  cardio
+  strength
+  free_weights
+  machine
+}
+
+enum EquipmentStatus {
+  operational
+  needs_maintenance
+  under_repair
+  out_of_service
+}
+
+model GroupClass {
+  classId          Int       @id @default(autoincrement()) @map("class_id")
+  className        String    @map("class_name") @db.VarChar(100)
+  classType        ClassType @map("class_type")
+  description      String?   @db.Text
+  difficultyLevel  DifficultyLevel @map("difficulty_level")
+  durationMinutes  Int       @map("duration_minutes")
+  maxCapacity      Int       @map("max_capacity")
+  requiresEquipment Boolean  @default(false) @map("requires_equipment")
+  isActive         Boolean   @default(true) @map("is_active")
+  
+  classSchedules   ClassSchedule[]
+  
+  @@map("group_classes")
+}
+
+enum ClassType {
+  yoga
+  pilates
+  spin
+  zumba
+  HIIT
+  strength
+  cardio
+  dance
+}
+
+enum DifficultyLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+model ClassSchedule {
+  scheduleId       Int            @id @default(autoincrement()) @map("schedule_id")
+  classId          Int            @map("class_id")
+  trainerId        Int            @map("trainer_id")
+  roomId           Int            @map("room_id")
+  scheduledDate    DateTime       @map("scheduled_date") @db.Date
+  startTime        DateTime       @map("start_time") @db.Time(6)
+  endTime          DateTime       @map("end_time") @db.Time(6)
+  currentCapacity  Int            @default(0) @map("current_capacity")
+  status           ScheduleStatus @default(scheduled)
+  cancellationReason String?      @map("cancellation_reason") @db.Text
+  
+  groupClass       GroupClass     @relation(fields: [classId], references: [classId], onDelete: Cascade)
+  trainer          Trainer        @relation(fields: [trainerId], references: [trainerId], onDelete: Restrict)
+  room             Room           @relation(fields: [roomId], references: [roomId], onDelete: Restrict)
+  registrations    ClassRegistration[]
+  billItems        BillItem[]
+  
+  @@index([scheduledDate, startTime])
+  @@index([trainerId, scheduledDate])
+  @@index([roomId, scheduledDate])
+  @@map("class_schedules")
+}
+
+enum ScheduleStatus {
+  scheduled
+  in_progress
+  completed
+  cancelled
+}
+
+model PersonalTrainingSession {
+  sessionId         Int            @id @default(autoincrement()) @map("session_id")
+  memberId          Int            @map("member_id")
+  trainerId         Int            @map("trainer_id")
+  roomId            Int?           @map("room_id")
+  scheduledDate     DateTime       @map("scheduled_date") @db.Date
+  startTime         DateTime       @map("start_time") @db.Time(6)
+  endTime           DateTime       @map("end_time") @db.Time(6)
+  status            SessionStatus  @default(scheduled)
+  notes             String?        @db.Text
+  memberFeedback   String?        @map("member_feedback") @db.Text
+  trainerNotes      String?        @map("trainer_notes") @db.Text
+  createdAt         DateTime       @default(now()) @map("created_at")
+  cancelledAt       DateTime?      @map("cancelled_at")
+  cancellationReason String?        @map("cancellation_reason") @db.Text
+  
+  member            Member         @relation(fields: [memberId], references: [memberId], onDelete: Cascade)
+  trainer           Trainer        @relation(fields: [trainerId], references: [trainerId], onDelete: Restrict)
+  room              Room?          @relation(fields: [roomId], references: [roomId], onDelete: SetNull)
+  billItems         BillItem[]
+  
+  @@index([memberId, scheduledDate(sort: Desc)])
+  @@index([trainerId, scheduledDate(sort: Desc)])
+  @@index([scheduledDate, startTime])
+  @@map("personal_training_sessions")
+}
+
+enum SessionStatus {
+  scheduled
+  completed
+  cancelled
+  no_show
+}
+
+model ClassRegistration {
+  registrationId    Int              @id @default(autoincrement()) @map("registration_id")
+  memberId          Int              @map("member_id")
+  scheduleId        Int              @map("schedule_id")
+  registrationDate  DateTime         @default(now()) @map("registration_date")
+  attendanceStatus  AttendanceStatus @default(registered)
+  waitlistPosition  Int?             @map("waitlist_position")
+  checkedInAt       DateTime?        @map("checked_in_at")
+  
+  member            Member           @relation(fields: [memberId], references: [memberId], onDelete: Cascade)
+  schedule          ClassSchedule    @relation(fields: [scheduleId], references: [scheduleId], onDelete: Cascade)
+  
+  @@unique([memberId, scheduleId])
+  @@index([memberId])
+  @@index([scheduleId])
+  @@map("class_registrations")
+}
+
+enum AttendanceStatus {
+  registered
+  attended
+  no_show
+  cancelled
+}
+
+model TrainerAvailability {
+  availabilityId Int       @id @default(autoincrement()) @map("availability_id")
+  trainerId      Int       @map("trainer_id")
+  dayOfWeek      DayOfWeek @map("day_of_week")
+  startTime      DateTime  @map("start_time") @db.Time(6)
+  endTime        DateTime  @map("end_time") @db.Time(6)
+  isRecurring    Boolean   @default(true) @map("is_recurring")
+  effectiveDate  DateTime  @default(now()) @map("effective_date") @db.Date
+  endDate        DateTime? @map("end_date") @db.Date
+  
+  trainer        Trainer   @relation(fields: [trainerId], references: [trainerId], onDelete: Cascade)
+  
+  @@index([trainerId, dayOfWeek])
+  @@map("trainer_availability")
+}
+
+enum DayOfWeek {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+model Bill {
+  billId        Int          @id @default(autoincrement()) @map("bill_id")
+  memberId      Int          @map("member_id")
+  generatedDate DateTime     @default(now()) @map("generated_date") @db.Date
+  dueDate       DateTime     @map("due_date") @db.Date
+  subtotal      Decimal      @default(0) @db.Decimal(10, 2)
+  taxRate       Decimal      @default(0.13) @map("tax_rate") @db.Decimal(5, 4)
+  taxAmount     Decimal      @map("tax_amount") @db.Decimal(10, 2)
+  totalAmount   Decimal      @map("total_amount") @db.Decimal(10, 2)
+  status        BillStatus   @default(pending)
+  paymentMethod PaymentMethod? @map("payment_method")
+  paidAt        DateTime?    @map("paid_at")
+  notes         String?      @db.Text
+  
+  member        Member       @relation(fields: [memberId], references: [memberId], onDelete: Cascade)
+  items         BillItem[]
+  
+  @@index([memberId, status])
+  @@index([status])
+  @@index([dueDate])
+  @@map("bills")
+}
+
+enum BillStatus {
+  pending
+  paid
+  overdue
+  cancelled
+}
+
+enum PaymentMethod {
+  credit_card
+  debit
+  cash
+  e_transfer
+}
+
+model BillItem {
+  itemId            Int            @id @default(autoincrement()) @map("item_id")
+  billId            Int            @map("bill_id")
+  itemType          BillItemType   @map("item_type")
+  description       String         @db.Text
+  quantity          Int            @default(1)
+  unitPrice         Decimal        @map("unit_price") @db.Decimal(10, 2)
+  subtotal          Decimal        @map("subtotal") @db.Decimal(10, 2)
+  relatedSessionId  Int?           @map("related_session_id")
+  relatedClassId    Int?           @map("related_class_id")
+  
+  bill              Bill           @relation(fields: [billId], references: [billId], onDelete: Cascade)
+  ptSession         PersonalTrainingSession? @relation(fields: [relatedSessionId], references: [sessionId], onDelete: SetNull)
+  classSchedule     ClassSchedule? @relation(fields: [relatedClassId], references: [scheduleId], onDelete: SetNull)
+  
+  @@map("bill_items")
+}
+
+enum BillItemType {
+  membership
+  personal_training
+  class
+  product
+  other
+}
+
+model MaintenanceLog {
+  logId            Int                @id @default(autoincrement()) @map("log_id")
+  equipmentId      Int                @map("equipment_id")
+  reportedBy       Int                @map("reported_by")
+  assignedTo       Int?               @map("assigned_to")
+  issueDescription String             @map("issue_description") @db.Text
+  priority         MaintenancePriority @default(medium)
+  status           MaintenanceStatus  @default(reported)
+  reportedDate     DateTime           @default(now()) @map("reported_date")
+  resolvedDate     DateTime?          @map("resolved_date")
+  resolutionNotes  String?            @map("resolution_notes") @db.Text
+  cost             Decimal?           @db.Decimal(10, 2)
+  
+  equipment        Equipment          @relation(fields: [equipmentId], references: [equipmentId], onDelete: Cascade)
+  reporter         User               @relation(fields: [reportedBy], references: [userId], onDelete: Restrict)
+  admin            Admin?             @relation(fields: [assignedTo], references: [adminId], onDelete: SetNull)
+  
+  @@index([equipmentId])
+  @@index([status])
+  @@map("maintenance_logs")
+}
+
+enum MaintenancePriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum MaintenanceStatus {
+  reported
+  in_progress
+  resolved
+  cancelled
+}
+
