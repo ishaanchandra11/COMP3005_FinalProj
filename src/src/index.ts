@@ -1,6 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes';
+import memberRoutes from './routes/memberRoutes';
+import trainerRoutes from './routes/trainerRoutes';
+import adminRoutes from './routes/adminRoutes';
+import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
 
@@ -17,17 +22,14 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Fitness Club API is running' });
 });
 
-// API Routes will be added here
-// app.use('/api/auth', authRoutes);
-// app.use('/api/members', memberRoutes);
-// app.use('/api/trainers', trainerRoutes);
-// app.use('/api/admin', adminRoutes);
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/members', memberRoutes);
+app.use('/api/trainers', trainerRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
-});
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 // 404 handler
 app.use((req, res) => {
