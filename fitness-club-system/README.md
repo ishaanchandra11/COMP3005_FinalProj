@@ -97,6 +97,110 @@ fitness-club-system/
    # Frontend: npm run dev:client (runs on http://localhost:5173)
    ```
 
+## 🧪 Testing
+
+### Test Credentials
+
+All test accounts use the password: **`password123`**
+
+#### Member Accounts
+- `john.doe@email.com` / `password123`
+- `jane.smith@email.com` / `password123`
+- `mike.johnson@email.com` / `password123`
+- `sarah.williams@email.com` / `password123`
+- `david.brown@email.com` / `password123`
+- `emily.davis@email.com` / `password123`
+- `chris.miller@email.com` / `password123`
+- `lisa.wilson@email.com` / `password123`
+- `robert.moore@email.com` / `password123`
+- `amanda.taylor@email.com` / `password123`
+- `james.anderson@email.com` / `password123`
+- `jennifer.thomas@email.com` / `password123`
+- `william.jackson@email.com` / `password123`
+- `michelle.white@email.com` / `password123`
+- `daniel.harris@email.com` / `password123`
+- `stephanie.martin@email.com` / `password123`
+- `matthew.thompson@email.com` / `password123`
+- `nicole.garcia@email.com` / `password123`
+- `kevin.martinez@email.com` / `password123`
+- `rachel.robinson@email.com` / `password123`
+
+#### Trainer Accounts
+- `trainer.alex@fitness.com` / `password123` (Alex Martinez - Strength/HIIT)
+- `trainer.maria@fitness.com` / `password123` (Maria Rodriguez - Yoga/Pilates)
+- `trainer.james@fitness.com` / `password123` (James Wilson - Cardio)
+- `trainer.sophia@fitness.com` / `password123` (Sophia Chen - HIIT)
+- `trainer.michael@fitness.com` / `password123` (Michael Thompson - Strength)
+- `trainer.emily@fitness.com` / `password123` (Emily Johnson - Dance/Zumba)
+
+#### Admin Accounts
+- `admin.sarah@fitness.com` / `password123` (Sarah Anderson - Operations)
+- `admin.mark@fitness.com` / `password123` (Mark Davis - Maintenance)
+- `admin.lisa@fitness.com` / `password123` (Lisa Brown - Billing)
+- `admin.david@fitness.com` / `password123` (David Miller - Operations)
+
+### Testing Process
+
+1. **Start the Application**
+   - Ensure both backend and frontend servers are running
+   - Backend should be accessible at `http://localhost:3001`
+   - Frontend should be accessible at `http://localhost:5173`
+
+2. **Test Authentication**
+   - Navigate to the login page
+   - Test login with different user roles (member, trainer, admin)
+   - Verify that users are redirected to the appropriate dashboard based on their role
+   - Test invalid credentials to ensure error handling works
+
+3. **Test Member Features**
+   - Log in as a member (e.g., `john.doe@email.com`)
+   - Test dashboard view and data display
+   - Test profile management (view and update)
+   - Test health metrics (add new entries, view history)
+   - Test fitness goals (create, view, update goals)
+   - Test personal training session booking
+   - Test group class registration
+   - Test billing and payment processing
+
+4. **Test Trainer Features**
+   - Log in as a trainer (e.g., `trainer.alex@fitness.com`)
+   - Test availability management (set, view, delete availability)
+   - Test schedule view (should show PT sessions and group classes)
+   - Test member lookup and search functionality
+   - Verify read-only access to member information
+
+5. **Test Admin Features**
+   - Log in as an admin (e.g., `admin.sarah@fitness.com`)
+   - Test admin dashboard and statistics
+   - Test room management (create, view, update rooms)
+   - Test equipment management and maintenance logs
+   - Test class schedule management (create, update, cancel schedules)
+   - Test billing management (create bills, process payments)
+   - Test viewing all members and trainers
+
+6. **Test Database Features**
+   - Verify views are working:
+     - `member_dashboard_view` - aggregates member data
+     - `trainer_schedule_view` - combines trainer schedules
+     - `room_utilization_view` - shows room usage statistics
+   - Test triggers:
+     - Class capacity updates automatically on registration
+     - Room conflict prevention
+     - Bill status updates (overdue detection)
+     - Tax and total calculations
+   - Test data integrity:
+     - Foreign key constraints
+     - Check constraints
+     - Historical data preservation
+
+### Comprehensive Testing Guide
+
+For detailed step-by-step testing instructions, see `TESTING_SCRIPT.md` in the project root. This document includes:
+- Detailed test cases for all features
+- Expected results for each test
+- Database verification queries
+- Bug reporting guidelines
+
 ## 📋 Features
 
 ### Member Functions

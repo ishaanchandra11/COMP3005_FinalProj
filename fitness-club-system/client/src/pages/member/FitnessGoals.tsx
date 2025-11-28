@@ -101,11 +101,10 @@ export default function FitnessGoals() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="weight_loss">Weight Loss</option>
-                  <option value="weight_gain">Weight Gain</option>
                   <option value="muscle_gain">Muscle Gain</option>
                   <option value="endurance">Endurance</option>
                   <option value="flexibility">Flexibility</option>
-                  <option value="strength">Strength</option>
+                  <option value="general_fitness">General Fitness</option>
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">

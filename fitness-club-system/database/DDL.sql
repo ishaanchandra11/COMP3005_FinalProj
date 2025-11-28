@@ -2,8 +2,6 @@
 -- Health and Fitness Club Management System
 -- Database Schema (DDL)
 -- ============================================
-
--- Drop existing objects if they exist (for clean setup)
 DROP SCHEMA IF EXISTS public CASCADE;
 CREATE SCHEMA public;
 GRANT ALL ON SCHEMA public TO postgres;
@@ -136,7 +134,6 @@ CREATE TABLE health_metrics (
     )
 );
 
--- Add generated column for BMI calculation
 ALTER TABLE health_metrics 
 ADD COLUMN bmi DECIMAL(5, 2) GENERATED ALWAYS AS (
     CASE 
@@ -207,9 +204,7 @@ CREATE TABLE class_schedules (
     notes TEXT,
     CONSTRAINT valid_time CHECK (end_time > start_time),
     CONSTRAINT valid_capacity CHECK (current_capacity >= 0),
-    -- Prevent double-booking of rooms
     CONSTRAINT no_room_conflict UNIQUE (room_id, scheduled_date, start_time, end_time),
-    -- Prevent trainer double-booking
     CONSTRAINT no_trainer_conflict UNIQUE (trainer_id, scheduled_date, start_time, end_time)
 );
 
@@ -230,9 +225,7 @@ CREATE TABLE personal_training_sessions (
     cancelled_at TIMESTAMP,
     cancellation_reason TEXT,
     CONSTRAINT valid_session_time CHECK (end_time > start_time),
-    -- Prevent member double-booking
     CONSTRAINT no_member_conflict UNIQUE (member_id, scheduled_date, start_time, end_time),
-    -- Prevent trainer double-booking for PT sessions
     CONSTRAINT no_pt_trainer_conflict UNIQUE (trainer_id, scheduled_date, start_time, end_time)
 );
 
@@ -246,7 +239,6 @@ CREATE TABLE class_registrations (
     waitlist_position INTEGER,
     checked_in_at TIMESTAMP,
     CONSTRAINT valid_waitlist CHECK (waitlist_position IS NULL OR waitlist_position > 0),
-    -- Prevent duplicate registrations
     CONSTRAINT unique_registration UNIQUE (member_id, schedule_id)
 );
 
@@ -319,7 +311,7 @@ CREATE TABLE audit_logs (
     log_id SERIAL PRIMARY KEY,
     table_name VARCHAR(100) NOT NULL,
     record_id INTEGER NOT NULL,
-    action VARCHAR(20) NOT NULL, -- INSERT, UPDATE, DELETE
+    action VARCHAR(20) NOT NULL,
     changed_by INTEGER REFERENCES users(user_id),
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     old_values JSONB,
@@ -327,10 +319,8 @@ CREATE TABLE audit_logs (
 );
 
 -- ============================================
--- INDEXES for Performance
+-- INDEXES
 -- ============================================
-
--- User authentication indexes
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
 
@@ -338,56 +328,34 @@ CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_members_user_id ON members(user_id);
 CREATE INDEX idx_members_status ON members(membership_status);
 CREATE INDEX idx_members_name ON members(last_name, first_name);
-
--- Trainer indexes
 CREATE INDEX idx_trainers_user_id ON trainers(user_id);
 CREATE INDEX idx_trainers_rating ON trainers(rating DESC);
-
--- Health metrics indexes (for trend analysis)
 CREATE INDEX idx_health_metrics_member ON health_metrics(member_id, recorded_at DESC);
 CREATE INDEX idx_health_metrics_date ON health_metrics(recorded_at DESC);
-
--- Fitness goals indexes
 CREATE INDEX idx_fitness_goals_member ON fitness_goals(member_id, status);
 CREATE INDEX idx_fitness_goals_status ON fitness_goals(status);
-
--- Room and equipment indexes
 CREATE INDEX idx_equipment_room ON equipment(room_id);
 CREATE INDEX idx_equipment_status ON equipment(status);
 CREATE INDEX idx_rooms_type ON rooms(room_type);
-
--- Class schedule indexes
 CREATE INDEX idx_class_schedules_date ON class_schedules(scheduled_date, start_time);
 CREATE INDEX idx_class_schedules_trainer ON class_schedules(trainer_id, scheduled_date);
 CREATE INDEX idx_class_schedules_room ON class_schedules(room_id, scheduled_date);
 CREATE INDEX idx_class_schedules_status ON class_schedules(status);
-
--- Personal training session indexes
 CREATE INDEX idx_pt_sessions_member ON personal_training_sessions(member_id, scheduled_date DESC);
 CREATE INDEX idx_pt_sessions_trainer ON personal_training_sessions(trainer_id, scheduled_date DESC);
 CREATE INDEX idx_pt_sessions_date ON personal_training_sessions(scheduled_date, start_time);
 CREATE INDEX idx_pt_sessions_status ON personal_training_sessions(status);
-
--- Class registration indexes
 CREATE INDEX idx_class_registrations_member ON class_registrations(member_id);
 CREATE INDEX idx_class_registrations_schedule ON class_registrations(schedule_id);
 CREATE INDEX idx_class_registrations_waitlist ON class_registrations(schedule_id, waitlist_position) WHERE waitlist_position IS NOT NULL;
-
--- Trainer availability indexes
 CREATE INDEX idx_trainer_availability_trainer ON trainer_availability(trainer_id, day_of_week);
 CREATE INDEX idx_trainer_availability_dates ON trainer_availability(effective_date, end_date);
-
--- Bill indexes
 CREATE INDEX idx_bills_member ON bills(member_id, status);
 CREATE INDEX idx_bills_status ON bills(status);
 CREATE INDEX idx_bills_due_date ON bills(due_date) WHERE status = 'pending';
-
--- Maintenance log indexes
 CREATE INDEX idx_maintenance_logs_equipment ON maintenance_logs(equipment_id);
 CREATE INDEX idx_maintenance_logs_status ON maintenance_logs(status);
 CREATE INDEX idx_maintenance_logs_assigned ON maintenance_logs(assigned_to) WHERE assigned_to IS NOT NULL;
-
--- GIN index for array searches (trainer specializations)
 CREATE INDEX idx_trainers_specialization ON trainers USING GIN(specialization);
 
 -- ============================================
@@ -521,7 +489,6 @@ FROM rooms r;
 -- TRIGGERS
 -- ============================================
 
--- Function to update class capacity automatically
 CREATE OR REPLACE FUNCTION update_class_capacity()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -578,14 +545,12 @@ CREATE TRIGGER trigger_update_class_capacity
 AFTER INSERT OR DELETE ON class_registrations
 FOR EACH ROW EXECUTE FUNCTION update_class_capacity();
 
--- Function to prevent room double-booking for class schedules
 CREATE OR REPLACE FUNCTION check_room_availability_class()
 RETURNS TRIGGER AS $$
 DECLARE
     conflicting_schedule INTEGER;
     conflicting_session INTEGER;
 BEGIN
-    -- Check for conflicts in other class schedules
     SELECT schedule_id INTO conflicting_schedule
     FROM class_schedules
     WHERE room_id = NEW.room_id
@@ -598,7 +563,6 @@ BEGIN
         RAISE EXCEPTION 'Room is already booked for this time slot (Class Schedule ID: %)', conflicting_schedule;
     END IF;
     
-    -- Check for conflicts in PT sessions
     SELECT session_id INTO conflicting_session
     FROM personal_training_sessions
     WHERE room_id = NEW.room_id
@@ -614,14 +578,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to prevent room double-booking for PT sessions
 CREATE OR REPLACE FUNCTION check_room_availability_pt()
 RETURNS TRIGGER AS $$
 DECLARE
     conflicting_schedule INTEGER;
     conflicting_session INTEGER;
 BEGIN
-    -- Check for conflicts in class schedules
     SELECT schedule_id INTO conflicting_schedule
     FROM class_schedules
     WHERE room_id = NEW.room_id
@@ -633,7 +595,6 @@ BEGIN
         RAISE EXCEPTION 'Room is already booked for this time slot (Class Schedule ID: %)', conflicting_schedule;
     END IF;
     
-    -- Check for conflicts in other PT sessions
     SELECT session_id INTO conflicting_session
     FROM personal_training_sessions
     WHERE room_id = NEW.room_id
@@ -658,7 +619,6 @@ CREATE TRIGGER trigger_check_room_availability_pt
 BEFORE INSERT OR UPDATE ON personal_training_sessions
 FOR EACH ROW EXECUTE FUNCTION check_room_availability_pt();
 
--- Function to update member last activity
 CREATE OR REPLACE FUNCTION update_member_activity()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -678,7 +638,6 @@ CREATE TRIGGER trigger_update_member_activity_registration
 AFTER INSERT ON class_registrations
 FOR EACH ROW EXECUTE FUNCTION update_member_activity();
 
--- Function to update trainer rating and session count
 CREATE OR REPLACE FUNCTION update_trainer_stats()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -695,11 +654,9 @@ CREATE TRIGGER trigger_update_trainer_stats
 AFTER UPDATE ON personal_training_sessions
 FOR EACH ROW EXECUTE FUNCTION update_trainer_stats();
 
--- Function to auto-update bill status
 CREATE OR REPLACE FUNCTION update_bill_status()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Mark bills as overdue if past due date (only if status is still pending)
     IF NEW.status = 'pending' AND NEW.due_date < CURRENT_DATE THEN
         NEW.status := 'overdue';
     END IF;
@@ -712,7 +669,6 @@ CREATE TRIGGER trigger_update_bill_status
 BEFORE INSERT OR UPDATE ON bills
 FOR EACH ROW EXECUTE FUNCTION update_bill_status();
 
--- Function to update bill subtotal when items change
 CREATE OR REPLACE FUNCTION update_bill_subtotal()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -743,7 +699,6 @@ CREATE TRIGGER trigger_update_bill_subtotal
 AFTER INSERT OR UPDATE OR DELETE ON bill_items
 FOR EACH ROW EXECUTE FUNCTION update_bill_subtotal();
 
--- Audit log trigger function
 CREATE OR REPLACE FUNCTION audit_trigger()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -764,18 +719,4 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ============================================
--- Comments for Documentation
--- ============================================
-
-COMMENT ON TABLE users IS 'Base authentication table for all system users';
-COMMENT ON TABLE members IS 'Member profiles extending user accounts';
-COMMENT ON TABLE trainers IS 'Trainer profiles with certifications and ratings';
-COMMENT ON TABLE health_metrics IS 'Historical health tracking data (never overwritten)';
-COMMENT ON TABLE fitness_goals IS 'Member fitness goals with progress tracking';
-COMMENT ON TABLE class_schedules IS 'Scheduled group fitness classes';
-COMMENT ON TABLE personal_training_sessions IS 'One-on-one training sessions';
-COMMENT ON VIEW member_dashboard_view IS 'Aggregated view for member dashboard display';
-COMMENT ON VIEW trainer_schedule_view IS 'Combined view of trainer PT and class schedules';
-COMMENT ON VIEW room_utilization_view IS 'Room usage statistics and utilization metrics';
 

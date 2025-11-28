@@ -3,57 +3,51 @@
 -- Sample Data (DML)
 -- ============================================
 
--- Migration: Ensure notes column exists in class_schedules table
--- (For existing databases that may not have this column)
 ALTER TABLE class_schedules
 ADD COLUMN IF NOT EXISTS notes TEXT;
-
--- Clear existing data (in reverse order of dependencies)
 TRUNCATE TABLE audit_logs, bill_items, bills, maintenance_logs, class_registrations, 
     class_schedules, personal_training_sessions, trainer_availability, 
     fitness_goals, health_metrics, equipment, group_classes, rooms, 
     admins, trainers, members, users CASCADE;
 
 -- ============================================
--- USERS (Base authentication)
+-- USERS
 -- ============================================
 
--- Password hash for "password123" (bcrypt)
--- In production, use proper password hashing
 INSERT INTO users (email, password_hash, role, created_at, is_active) VALUES
 -- Members
-('john.doe@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vOeJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-01-15 10:00:00', TRUE),
-('jane.smith@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vOeJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-02-01 14:30:00', TRUE),
-('mike.johnson@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vOeJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-02-10 09:15:00', TRUE),
-('sarah.williams@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vOeJ1vYqJ1vYqJ1vYqJ1vOeJ1vYqJ1vYqJ1vY', 'member', '2024-02-20 11:00:00', TRUE),
-('david.brown@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vOeJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-03-05 16:45:00', TRUE),
-('emily.davis@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vOeJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-03-12 08:30:00', TRUE),
-('chris.miller@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vOeJ1vYqJ1vY', 'member', '2024-03-18 13:20:00', TRUE),
-('lisa.wilson@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vOeJ1vY', 'member', '2024-04-01 10:00:00', TRUE),
-('robert.moore@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vO', 'member', '2024-04-10 15:30:00', TRUE),
-('amanda.taylor@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-04-15 09:00:00', TRUE),
-('james.anderson@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-05-01 11:15:00', TRUE),
-('jennifer.thomas@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-05-05 14:00:00', TRUE),
-('william.jackson@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-05-10 10:30:00', TRUE),
-('michelle.white@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-05-15 16:00:00', TRUE),
-('daniel.harris@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-05-20 08:45:00', TRUE),
-('stephanie.martin@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-06-01 12:00:00', TRUE),
-('matthew.thompson@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-06-05 09:30:00', TRUE),
-('nicole.garcia@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-06-10 15:00:00', TRUE),
-('kevin.martinez@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-06-15 11:30:00', TRUE),
-('rachel.robinson@email.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'member', '2024-06-20 13:45:00', TRUE),
+('john.doe@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-01-15 10:00:00', TRUE),
+('jane.smith@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-02-01 14:30:00', TRUE),
+('mike.johnson@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-02-10 09:15:00', TRUE),
+('sarah.williams@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-02-20 11:00:00', TRUE),
+('david.brown@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-03-05 16:45:00', TRUE),
+('emily.davis@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-03-12 08:30:00', TRUE),
+('chris.miller@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-03-18 13:20:00', TRUE),
+('lisa.wilson@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-04-01 10:00:00', TRUE),
+('robert.moore@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-04-10 15:30:00', TRUE),
+('amanda.taylor@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-04-15 09:00:00', TRUE),
+('james.anderson@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-05-01 11:15:00', TRUE),
+('jennifer.thomas@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-05-05 14:00:00', TRUE),
+('william.jackson@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-05-10 10:30:00', TRUE),
+('michelle.white@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-05-15 16:00:00', TRUE),
+('daniel.harris@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-05-20 08:45:00', TRUE),
+('stephanie.martin@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-06-01 12:00:00', TRUE),
+('matthew.thompson@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-06-05 09:30:00', TRUE),
+('nicole.garcia@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-06-10 15:00:00', TRUE),
+('kevin.martinez@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-06-15 11:30:00', TRUE),
+('rachel.robinson@email.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'member', '2024-06-20 13:45:00', TRUE),
 -- Trainers
-('trainer.alex@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'trainer', '2023-12-01 08:00:00', TRUE),
-('trainer.maria@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'trainer', '2023-12-15 08:00:00', TRUE),
-('trainer.james@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'trainer', '2024-01-01 08:00:00', TRUE),
-('trainer.sophia@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'trainer', '2024-01-10 08:00:00', TRUE),
-('trainer.michael@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'trainer', '2024-02-01 08:00:00', TRUE),
-('trainer.emily@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'trainer', '2024-02-15 08:00:00', TRUE),
+('trainer.alex@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'trainer', '2023-12-01 08:00:00', TRUE),
+('trainer.maria@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'trainer', '2023-12-15 08:00:00', TRUE),
+('trainer.james@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'trainer', '2024-01-01 08:00:00', TRUE),
+('trainer.sophia@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'trainer', '2024-01-10 08:00:00', TRUE),
+('trainer.michael@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'trainer', '2024-02-01 08:00:00', TRUE),
+('trainer.emily@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'trainer', '2024-02-15 08:00:00', TRUE),
 -- Admins
-('admin.sarah@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'admin', '2023-11-01 08:00:00', TRUE),
-('admin.mark@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'admin', '2023-11-15 08:00:00', TRUE),
-('admin.lisa@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'admin', '2024-01-01 08:00:00', TRUE),
-('admin.david@fitness.com', '$2b$10$rOzJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vYqJ1vY', 'admin', '2024-02-01 08:00:00', TRUE);
+('admin.sarah@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'admin', '2023-11-01 08:00:00', TRUE),
+('admin.mark@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'admin', '2023-11-15 08:00:00', TRUE),
+('admin.lisa@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'admin', '2024-01-01 08:00:00', TRUE),
+('admin.david@fitness.com', '$2a$10$Afg2k1pXw2L5rvD2TQYk.OIOVSGeGSjTxmQBkMC0prm/ecHM11g5G', 'admin', '2024-02-01 08:00:00', TRUE);
 
 -- ============================================
 -- MEMBERS
@@ -162,7 +156,7 @@ INSERT INTO fitness_goals (member_id, goal_type, target_value, target_date, curr
 (4, 'flexibility', 180.0, '2025-08-01', 120.0, 'active', '2024-03-01 11:00:00', 'Touch toes and improve flexibility'),
 (5, 'muscle_gain', 90.0, '2025-12-31', 85.0, 'active', '2024-03-10 15:00:00', 'Build strength and muscle'),
 (6, 'weight_loss', 55.0, '2025-04-01', 62.0, 'active', '2024-03-15 10:00:00', 'Weight loss goal'),
-(7, 'general_fitness', 0.0, '2025-12-31', NULL, 'active', '2024-03-20 13:00:00', 'Maintain overall fitness'),
+(7, 'general_fitness', 1.0, '2025-12-31', NULL, 'active', '2024-03-20 13:00:00', 'Maintain overall fitness'),
 (8, 'weight_loss', 58.0, '2025-06-01', 65.0, 'active', '2024-04-05 09:00:00', 'Summer body goal'),
 (9, 'muscle_gain', 80.0, '2025-10-01', 75.0, 'active', '2024-04-15 11:00:00', 'Build muscle'),
 (10, 'flexibility', 160.0, '2025-07-01', 140.0, 'active', '2024-04-20 14:00:00', 'Improve flexibility'),
@@ -171,10 +165,8 @@ INSERT INTO fitness_goals (member_id, goal_type, target_value, target_date, curr
 (1, 'endurance', 5.0, '2024-12-31', 5.0, 'achieved', '2024-01-25 10:00:00', 'Run 5km - ACHIEVED!');
 
 -- ============================================
--- HEALTH METRICS (Historical tracking)
+-- HEALTH METRICS
 -- ============================================
-
--- Member 1 (John Doe) - showing progress
 INSERT INTO health_metrics (member_id, recorded_at, weight, height, body_fat_percentage, muscle_mass, resting_heart_rate, blood_pressure_systolic, blood_pressure_diastolic, notes) VALUES
 (1, '2024-01-20 10:00:00', 85.0, 178, 22.5, 65.0, 72, 120, 80, 'Initial assessment'),
 (1, '2024-02-15 10:00:00', 83.5, 178, 21.8, 65.5, 70, 118, 78, 'Good progress'),
@@ -186,22 +178,16 @@ INSERT INTO health_metrics (member_id, recorded_at, weight, height, body_fat_per
 (1, '2024-08-15 10:00:00', 78.0, 178, 18.5, 68.2, 62, 113, 73, 'Steady improvement'),
 (1, '2024-09-15 10:00:00', 77.5, 178, 18.2, 68.5, 62, 112, 72, 'On track'),
 (1, '2024-10-15 10:00:00', 77.0, 178, 18.0, 68.8, 61, 112, 72, 'Latest measurement');
-
--- Member 2 (Jane Smith)
 INSERT INTO health_metrics (member_id, recorded_at, weight, height, body_fat_percentage, muscle_mass, resting_heart_rate, blood_pressure_systolic, blood_pressure_diastolic, notes) VALUES
 (2, '2024-02-05 14:00:00', 70.0, 165, 28.0, 48.0, 75, 125, 82, 'Initial assessment'),
 (2, '2024-03-05 14:00:00', 69.0, 165, 27.2, 48.5, 74, 124, 81, 'Progress update'),
 (2, '2024-04-05 14:00:00', 68.5, 165, 26.8, 49.0, 73, 122, 80, 'Good progress'),
 (2, '2024-05-05 14:00:00', 68.0, 165, 26.5, 49.2, 72, 122, 80, 'Continuing improvement'),
 (2, '2024-06-05 14:00:00', 67.5, 165, 26.0, 49.5, 71, 120, 78, 'Latest measurement');
-
--- Member 3 (Mike Johnson)
 INSERT INTO health_metrics (member_id, recorded_at, weight, height, body_fat_percentage, muscle_mass, resting_heart_rate, blood_pressure_systolic, blood_pressure_diastolic, notes) VALUES
 (3, '2024-02-15 09:00:00', 80.0, 180, 20.0, 62.0, 70, 118, 76, 'Initial assessment'),
 (3, '2024-04-15 09:00:00', 79.5, 180, 19.8, 62.5, 69, 117, 75, 'Progress update'),
 (3, '2024-06-15 09:00:00', 79.0, 180, 19.5, 63.0, 68, 116, 74, 'Latest measurement');
-
--- More members with recent metrics
 INSERT INTO health_metrics (member_id, recorded_at, weight, height, body_fat_percentage, muscle_mass, resting_heart_rate, blood_pressure_systolic, blood_pressure_diastolic) VALUES
 (4, '2024-10-01 11:00:00', 65.0, 170, 25.0, 47.0, 72, 120, 78),
 (5, '2024-10-05 15:00:00', 87.0, 185, 18.0, 70.0, 65, 115, 73),
@@ -214,16 +200,12 @@ INSERT INTO health_metrics (member_id, recorded_at, weight, height, body_fat_per
 -- ============================================
 -- TRAINER AVAILABILITY
 -- ============================================
-
--- Alex Martinez (Trainer 1) - Strength/HIIT
 INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time, is_recurring, effective_date) VALUES
 (1, 'MON', '06:00', '14:00', TRUE, '2024-01-01'),
 (1, 'WED', '06:00', '14:00', TRUE, '2024-01-01'),
 (1, 'FRI', '06:00', '14:00', TRUE, '2024-01-01'),
 (1, 'TUE', '16:00', '20:00', TRUE, '2024-01-01'),
 (1, 'THU', '16:00', '20:00', TRUE, '2024-01-01');
-
--- Maria Rodriguez (Trainer 2) - Yoga/Pilates
 INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time, is_recurring, effective_date) VALUES
 (2, 'MON', '08:00', '12:00', TRUE, '2024-01-01'),
 (2, 'WED', '08:00', '12:00', TRUE, '2024-01-01'),
@@ -231,29 +213,21 @@ INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time,
 (2, 'TUE', '14:00', '18:00', TRUE, '2024-01-01'),
 (2, 'THU', '14:00', '18:00', TRUE, '2024-01-01'),
 (2, 'SAT', '09:00', '13:00', TRUE, '2024-01-01');
-
--- James Wilson (Trainer 3) - Cardio
 INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time, is_recurring, effective_date) VALUES
 (3, 'MON', '05:00', '13:00', TRUE, '2024-01-01'),
 (3, 'WED', '05:00', '13:00', TRUE, '2024-01-01'),
 (3, 'FRI', '05:00', '13:00', TRUE, '2024-01-01'),
 (3, 'SAT', '07:00', '11:00', TRUE, '2024-01-01');
-
--- Sophia Chen (Trainer 4) - HIIT
 INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time, is_recurring, effective_date) VALUES
 (4, 'TUE', '06:00', '14:00', TRUE, '2024-01-01'),
 (4, 'THU', '06:00', '14:00', TRUE, '2024-01-01'),
 (4, 'SAT', '08:00', '16:00', TRUE, '2024-01-01'),
 (4, 'SUN', '10:00', '14:00', TRUE, '2024-01-01');
-
--- Michael Thompson (Trainer 5) - Strength
 INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time, is_recurring, effective_date) VALUES
 (5, 'MON', '14:00', '22:00', TRUE, '2024-02-01'),
 (5, 'WED', '14:00', '22:00', TRUE, '2024-02-01'),
 (5, 'FRI', '14:00', '22:00', TRUE, '2024-02-01'),
 (5, 'SAT', '10:00', '18:00', TRUE, '2024-02-01');
-
--- Emily Johnson (Trainer 6) - Dance/Zumba
 INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time, is_recurring, effective_date) VALUES
 (6, 'TUE', '09:00', '17:00', TRUE, '2024-02-15'),
 (6, 'THU', '09:00', '17:00', TRUE, '2024-02-15'),
@@ -261,66 +235,47 @@ INSERT INTO trainer_availability (trainer_id, day_of_week, start_time, end_time,
 (6, 'SUN', '12:00', '16:00', TRUE, '2024-02-15');
 
 -- ============================================
--- CLASS SCHEDULES (Next 2 weeks - always in the future)
+-- CLASS SCHEDULES
 -- ============================================
-
--- These schedules use CURRENT_DATE to ensure they're always in the future
--- regardless of when the database is seeded
-
--- Day 1 (Tomorrow)
 INSERT INTO class_schedules (class_id, trainer_id, room_id, scheduled_date, start_time, end_time, current_capacity, status)
 VALUES
-(1, 2, 2, CURRENT_DATE + 1, '08:00:00', '09:00:00', 5, 'scheduled'),  -- Morning Yoga
-(4, 3, 4, CURRENT_DATE + 1, '06:00:00', '06:45:00', 10, 'scheduled'), -- Spin Class
-(5, 4, 5, CURRENT_DATE + 1, '07:00:00', '07:30:00', 3, 'scheduled')  -- HIIT Blast
+(1, 2, 2, CURRENT_DATE + 1, '08:00:00', '09:00:00', 5, 'scheduled'),
+(4, 3, 4, CURRENT_DATE + 1, '06:00:00', '06:45:00', 10, 'scheduled'),
+(5, 4, 5, CURRENT_DATE + 1, '07:00:00', '07:30:00', 3, 'scheduled')
 ON CONFLICT (room_id, scheduled_date, start_time, end_time) DO NOTHING;
-
--- Day 2
 INSERT INTO class_schedules (class_id, trainer_id, room_id, scheduled_date, start_time, end_time, current_capacity, status)
 VALUES
-(3, 2, 3, CURRENT_DATE + 2, '10:00:00', '10:45:00', 2, 'scheduled'),  -- Pilates Core
-(6, 6, 2, CURRENT_DATE + 2, '18:00:00', '19:00:00', 10, 'scheduled'), -- Zumba
-(8, 3, 5, CURRENT_DATE + 2, '19:00:00', '19:45:00', 8, 'scheduled')   -- Cardio Kickboxing
+(3, 2, 3, CURRENT_DATE + 2, '10:00:00', '10:45:00', 2, 'scheduled'),
+(6, 6, 2, CURRENT_DATE + 2, '18:00:00', '19:00:00', 10, 'scheduled'),
+(8, 3, 5, CURRENT_DATE + 2, '19:00:00', '19:45:00', 8, 'scheduled')
 ON CONFLICT (room_id, scheduled_date, start_time, end_time) DO NOTHING;
-
--- Day 3
 INSERT INTO class_schedules (class_id, trainer_id, room_id, scheduled_date, start_time, end_time, current_capacity, status)
 VALUES
-(2, 2, 2, CURRENT_DATE + 3, '08:00:00', '09:15:00', 5, 'scheduled'),  -- Power Yoga
-(4, 3, 4, CURRENT_DATE + 3, '06:00:00', '06:45:00', 12, 'scheduled'), -- Spin Class
-(7, 1, 1, CURRENT_DATE + 3, '17:00:00', '18:00:00', 8, 'scheduled')   -- Strength Training
+(2, 2, 2, CURRENT_DATE + 3, '08:00:00', '09:15:00', 5, 'scheduled'),
+(4, 3, 4, CURRENT_DATE + 3, '06:00:00', '06:45:00', 12, 'scheduled'),
+(7, 1, 1, CURRENT_DATE + 3, '17:00:00', '18:00:00', 8, 'scheduled')
 ON CONFLICT (room_id, scheduled_date, start_time, end_time) DO NOTHING;
-
--- Day 4
 INSERT INTO class_schedules (class_id, trainer_id, room_id, scheduled_date, start_time, end_time, current_capacity, status)
 VALUES
-(3, 2, 3, CURRENT_DATE + 4, '10:00:00', '10:45:00', 4, 'scheduled'),  -- Pilates Core
-(6, 6, 2, CURRENT_DATE + 4, '18:00:00', '19:00:00', 15, 'scheduled')  -- Zumba
+(3, 2, 3, CURRENT_DATE + 4, '10:00:00', '10:45:00', 4, 'scheduled'),
+(6, 6, 2, CURRENT_DATE + 4, '18:00:00', '19:00:00', 15, 'scheduled')
 ON CONFLICT (room_id, scheduled_date, start_time, end_time) DO NOTHING;
-
--- Day 5
 INSERT INTO class_schedules (class_id, trainer_id, room_id, scheduled_date, start_time, end_time, current_capacity, status)
 VALUES
-(1, 2, 2, CURRENT_DATE + 5, '08:00:00', '09:00:00', 7, 'scheduled'),  -- Morning Yoga
-(4, 3, 4, CURRENT_DATE + 5, '06:00:00', '06:45:00', 20, 'scheduled'), -- Spin Class
-(5, 4, 5, CURRENT_DATE + 5, '07:00:00', '07:30:00', 5, 'scheduled')   -- HIIT Blast
+(1, 2, 2, CURRENT_DATE + 5, '08:00:00', '09:00:00', 7, 'scheduled'),
+(4, 3, 4, CURRENT_DATE + 5, '06:00:00', '06:45:00', 20, 'scheduled'),
+(5, 4, 5, CURRENT_DATE + 5, '07:00:00', '07:30:00', 5, 'scheduled')
 ON CONFLICT (room_id, scheduled_date, start_time, end_time) DO NOTHING;
-
--- Day 6
 INSERT INTO class_schedules (class_id, trainer_id, room_id, scheduled_date, start_time, end_time, current_capacity, status)
 VALUES
-(6, 6, 2, CURRENT_DATE + 6, '14:00:00', '15:00:00', 10, 'scheduled'), -- Zumba
-(7, 5, 1, CURRENT_DATE + 6, '11:00:00', '12:00:00', 6, 'scheduled')   -- Strength Training
+(6, 6, 2, CURRENT_DATE + 6, '14:00:00', '15:00:00', 10, 'scheduled'),
+(7, 5, 1, CURRENT_DATE + 6, '11:00:00', '12:00:00', 6, 'scheduled')
 ON CONFLICT (room_id, scheduled_date, start_time, end_time) DO NOTHING;
-
--- Day 7
 INSERT INTO class_schedules (class_id, trainer_id, room_id, scheduled_date, start_time, end_time, current_capacity, status)
 VALUES
-(1, 2, 2, CURRENT_DATE + 7, '10:00:00', '11:00:00', 8, 'scheduled'),  -- Morning Yoga
-(5, 4, 5, CURRENT_DATE + 7, '11:00:00', '11:30:00', 6, 'scheduled')   -- HIIT Blast
+(1, 2, 2, CURRENT_DATE + 7, '10:00:00', '11:00:00', 8, 'scheduled'),
+(5, 4, 5, CURRENT_DATE + 7, '11:00:00', '11:30:00', 6, 'scheduled')
 ON CONFLICT (room_id, scheduled_date, start_time, end_time) DO NOTHING;
-
--- Next week - Day 8-14
 INSERT INTO class_schedules (class_id, trainer_id, room_id, scheduled_date, start_time, end_time, current_capacity, status)
 VALUES
 (1, 2, 2, CURRENT_DATE + 8, '08:00:00', '09:00:00', 0, 'scheduled'),
@@ -335,8 +290,6 @@ ON CONFLICT (room_id, scheduled_date, start_time, end_time) DO NOTHING;
 -- ============================================
 -- PERSONAL TRAINING SESSIONS
 -- ============================================
-
--- Upcoming sessions
 INSERT INTO personal_training_sessions (member_id, trainer_id, room_id, scheduled_date, start_time, end_time, status, created_at) VALUES
 (1, 1, 1, CURRENT_DATE + INTERVAL '2 days', '11:00', '12:00', 'scheduled', '2024-10-20 10:00:00'),
 (2, 2, 2, CURRENT_DATE + INTERVAL '3 days', '11:00', '12:00', 'scheduled', '2024-10-18 14:00:00'),
@@ -346,8 +299,6 @@ INSERT INTO personal_training_sessions (member_id, trainer_id, room_id, schedule
 (6, 1, 1, CURRENT_DATE + INTERVAL '7 days', '12:00', '13:00', 'scheduled', '2024-10-21 08:00:00'),
 (7, 2, 2, CURRENT_DATE + INTERVAL '8 days', '10:00', '11:00', 'scheduled', '2024-10-20 13:00:00'),
 (8, 3, 1, CURRENT_DATE + INTERVAL '9 days', '09:00', '10:00', 'scheduled', '2024-10-21 10:00:00');
-
--- Completed sessions
 INSERT INTO personal_training_sessions (member_id, trainer_id, room_id, scheduled_date, start_time, end_time, status, trainer_notes, created_at) VALUES
 (1, 1, 1, CURRENT_DATE - INTERVAL '7 days', '11:00', '12:00', 'completed', 'Great session, focused on upper body strength', '2024-10-10 10:00:00'),
 (1, 1, 1, CURRENT_DATE - INTERVAL '14 days', '11:00', '12:00', 'completed', 'Leg day, excellent form', '2024-10-03 10:00:00'),
@@ -359,44 +310,32 @@ INSERT INTO personal_training_sessions (member_id, trainer_id, room_id, schedule
 -- CLASS REGISTRATIONS
 -- ============================================
 
--- Register members for various classes
 INSERT INTO class_registrations (member_id, schedule_id, registration_date, attendance_status, waitlist_position) VALUES
--- Monday classes
-(1, 1, '2024-10-20 10:00:00', 'registered', NULL), -- Morning Yoga
+(1, 1, '2024-10-20 10:00:00', 'registered', NULL),
 (2, 1, '2024-10-19 14:00:00', 'registered', NULL),
 (3, 1, '2024-10-18 09:00:00', 'registered', NULL),
-(4, 4, '2024-10-20 11:00:00', 'registered', NULL), -- Spin Class
+(4, 4, '2024-10-20 11:00:00', 'registered', NULL),
 (5, 4, '2024-10-19 15:00:00', 'registered', NULL),
-(6, 5, '2024-10-21 08:00:00', 'registered', NULL), -- HIIT Blast
+(6, 5, '2024-10-21 08:00:00', 'registered', NULL),
 (7, 5, '2024-10-20 13:00:00', 'registered', NULL),
-(8, 7, '2024-10-19 10:00:00', 'registered', NULL), -- Strength Training
-
--- Tuesday classes
-(9, 8, '2024-10-20 09:00:00', 'registered', NULL), -- Pilates Core
+(8, 7, '2024-10-19 10:00:00', 'registered', NULL),
+(9, 8, '2024-10-20 09:00:00', 'registered', NULL),
 (10, 8, '2024-10-19 11:00:00', 'registered', NULL),
-(11, 9, '2024-10-21 10:00:00', 'registered', NULL), -- Zumba
+(11, 9, '2024-10-21 10:00:00', 'registered', NULL),
 (12, 9, '2024-10-20 14:00:00', 'registered', NULL),
-(13, 10, '2024-10-19 16:00:00', 'registered', NULL), -- Cardio Kickboxing
-
--- Wednesday classes
-(14, 11, '2024-10-20 08:00:00', 'registered', NULL), -- Power Yoga
-(15, 12, '2024-10-21 09:00:00', 'registered', NULL), -- Spin Class
-(16, 13, '2024-10-20 10:00:00', 'registered', NULL), -- HIIT Blast
-
--- Friday Spin Class (at capacity - some on waitlist)
+(13, 10, '2024-10-19 16:00:00', 'registered', NULL),
+(14, 11, '2024-10-20 08:00:00', 'registered', NULL),
+(15, 12, '2024-10-21 09:00:00', 'registered', NULL),
+(16, 13, '2024-10-20 10:00:00', 'registered', NULL),
 (17, 18, '2024-10-19 08:00:00', 'registered', NULL),
 (18, 18, '2024-10-19 09:00:00', 'registered', NULL),
-(19, 18, '2024-10-19 10:00:00', 'registered', 1), -- Waitlist
-(20, 18, '2024-10-19 11:00:00', 'registered', 2); -- Waitlist
-
--- Some completed/attended classes
+(19, 18, '2024-10-19 10:00:00', 'registered', 1),
+(20, 18, '2024-10-19 11:00:00', 'registered', 2);
 UPDATE class_registrations SET attendance_status = 'attended', checked_in_at = CURRENT_TIMESTAMP - INTERVAL '2 days' WHERE registration_id IN (1, 2, 4, 5);
 
 -- ============================================
 -- BILLS AND PAYMENTS
 -- ============================================
-
--- Membership bills
 INSERT INTO bills (member_id, generated_date, due_date, subtotal, status, payment_method, paid_at, notes) VALUES
 (1, '2024-10-01', '2024-10-15', 99.99, 'paid', 'credit_card', '2024-10-05 10:00:00', 'Monthly membership'),
 (2, '2024-10-01', '2024-10-15', 99.99, 'paid', 'debit', '2024-10-03 14:00:00', 'Monthly membership'),
@@ -408,8 +347,6 @@ INSERT INTO bills (member_id, generated_date, due_date, subtotal, status, paymen
 (8, '2024-10-01', '2024-10-15', 99.99, 'overdue', NULL, NULL, 'Monthly membership'),
 (9, '2024-10-01', '2024-10-15', 99.99, 'paid', 'credit_card', '2024-10-02 10:00:00', 'Monthly membership'),
 (10, '2024-10-01', '2024-10-15', 99.99, 'paid', 'e_transfer', '2024-10-09 16:00:00', 'Monthly membership');
-
--- PT Session bills
 INSERT INTO bills (member_id, generated_date, due_date, subtotal, status, payment_method, paid_at) VALUES
 (1, '2024-10-15', '2024-10-29', 75.00, 'paid', 'credit_card', '2024-10-16 10:00:00'),
 (2, '2024-10-12', '2024-10-26', 65.00, 'paid', 'debit', '2024-10-13 14:00:00'),
@@ -417,9 +354,7 @@ INSERT INTO bills (member_id, generated_date, due_date, subtotal, status, paymen
 (4, '2024-10-14', '2024-10-28', 80.00, 'pending', NULL, NULL),
 (5, '2024-10-19', '2024-11-02', 85.00, 'pending', NULL, NULL);
 
--- Bill items
 INSERT INTO bill_items (bill_id, item_type, description, quantity, unit_price, related_session_id, related_class_id) VALUES
--- Membership items
 (1, 'membership', 'Monthly Gym Membership - October 2024', 1, 99.99, NULL, NULL),
 (2, 'membership', 'Monthly Gym Membership - October 2024', 1, 99.99, NULL, NULL),
 (3, 'membership', 'Monthly Gym Membership - October 2024', 1, 99.99, NULL, NULL),
@@ -430,7 +365,6 @@ INSERT INTO bill_items (bill_id, item_type, description, quantity, unit_price, r
 (8, 'membership', 'Monthly Gym Membership - October 2024', 1, 99.99, NULL, NULL),
 (9, 'membership', 'Monthly Gym Membership - October 2024', 1, 99.99, NULL, NULL),
 (10, 'membership', 'Monthly Gym Membership - October 2024', 1, 99.99, NULL, NULL),
--- PT Session items
 (11, 'personal_training', 'Personal Training Session with Alex Martinez', 1, 75.00, 1, NULL),
 (12, 'personal_training', 'Personal Training Session with Maria Rodriguez', 1, 65.00, 2, NULL),
 (13, 'personal_training', 'Personal Training Session with James Wilson', 1, 70.00, 3, NULL),

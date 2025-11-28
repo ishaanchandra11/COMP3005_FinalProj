@@ -6,7 +6,6 @@ import { useAuth } from './lib/auth';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Register from './pages/Register';
 
 // Member Pages
 import MemberDashboard from './pages/member/MemberDashboard';
@@ -51,7 +50,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           
           {/* Member Routes */}
           <Route path="/member/dashboard" element={<MemberDashboard />} />
